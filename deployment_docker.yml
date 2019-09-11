@@ -1,0 +1,42 @@
+- name: Ensure that docker is well installed
+  hosts: wrk
+  gather_facts: True
+  become: yes
+  tasks:
+    - name: Ensure that docker are well isntalled
+      yum:
+        name: docker-ce
+        enablerepo: "docker-ce-stable"
+        state: present
+
+    - name: Ensure that PostgreSQL is well started
+      service:
+        name: docker
+        state: started
+
+
+- name: Ensure that postgres is well installed
+  hosts: db
+  gather_facts: True
+  become: yes
+  tasks:
+    - name: Ensure that the repository yum.postgresql is present
+      shell: "rpm -Uvh https://yum.postgresql.org/11/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
+      ignore_errors: yes
+
+    - name: Ensure that postgres are well isntalled
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - postgresql11-server
+        - postgresql11
+
+#    - name: ensure that the DB is initialised
+#      shell: "/usr/pgsql-11/bin/postgresql-11-setup initdb"
+    
+    - name: Ensure that PostgreSQL is well started
+      service: 
+        enabled: yes
+        name: postgresql-11.service
+        state: started

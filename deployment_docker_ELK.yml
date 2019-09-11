@@ -1,0 +1,37 @@
+- name: Ensure that docker is well installed
+  hosts: wrk
+  gather_facts: True
+  become: yes
+  roles:
+    - role_docker
+    - role_docker_compose
+  
+  tasks:
+    - name: copy docker-compose-file and logstash.conf to remote server
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - { src: 'docker_compose_elk.yml.j2', dest: '/home/docker_compose_elk.yml' }
+        - { src: 'logstash.conf.j2', dest: '/home/logstash.conf' }
+
+    #- name: Start ELK docker-compose stack
+     # docker_compose:
+     #   project_src: /home/docker_compose_elk.yml
+     #   state: present
+    - name: Start ELK docker-compose stack
+      shell: docker-compose -f /home/docker_compose_elk.yml down
+      ignore_errors: True
+
+    - name: Start ELK docker-compose stack
+      shell: docker-compose -f /home/docker_compose_elk.yml up -d
+
+    - name: wait for the service is up
+      wait_for: 
+        timeout: 300
+
+    - name: Ensure that kibana is started
+      uri:
+        url: 127.0.0.1:5601
+        #status_code: 200 
+        status_code: 302

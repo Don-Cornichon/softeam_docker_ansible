@@ -1,0 +1,38 @@
+---
+# tasks file for role_docker
+- block:
+    - name: Ensure that the prerequies are well installed for Docker-ce
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - yum-utils
+        - device-mapper-persistent-data
+        - lvm2
+  
+    - name: Ensure that the yum repository docker-ce is well installed
+      yum_repository:
+        name: docker-ce-stable
+        description: docker-ce-stable
+        baseurl: https://download.docker.com/linux/centos/docker-ce.repo
+  
+    - name: Ensure that docker-ce, docker-ce-cli, containerd.io
+      yum:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+  
+    - name: Ensure that the service docker is enabled
+      service:
+        name: docker
+        enabled: yes
+  
+    - name: Ensure that the service docker is well started
+      service:
+       name: docker
+       state: started
+  
+  become: yes 
